@@ -41,8 +41,8 @@ right = SparkMaxGroup(
     inverted=True
 )
 """
+motor = SparkMax(bus, 1)
 with HeartbeatTask(bus, enabled=True):
     while True:
-        motor = SparkMax(bus, 1)
         motor.set_duty_cycle(0.1)
         time.sleep(0.02)
