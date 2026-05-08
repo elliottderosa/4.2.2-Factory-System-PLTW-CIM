@@ -1,7 +1,33 @@
 import cv2
 import numpy as np
 import pickle
+import sys
+import select
 import math
+import pigpio
+import time
+
+pi = pigpio.pi()
+
+shot_pin = 18
+hood_pin = 14
+
+shot_speed = 1600
+shot_angle = 0
+
+pi.set_mode(shot_pin, pigpio.OUTPUT)
+
+def shoot(speed, length):
+    shot_speed = speed
+    pi.set_servo_pulsewidth(shot_pin, speed)
+    time.sleep(length)
+
+def stop(pin):
+    while shot_speed > 1500:
+        shot_speed -= 2
+        pi.set_servo_pulsewidth(18, shot_speed)
+        time.sleep(0.02)
+    pi.set_servo_pulsewidth(18, 1500)
 
 with open("camera_calibration.pkl", "rb") as f:
     mtx, dist = pickle.load(f)
@@ -14,7 +40,7 @@ aruco_dict = cv2.aruco.getPredefinedDictionary(
 params = cv2.aruco.DetectorParameters()
 detector = cv2.aruco.ArucoDetector(aruco_dict, params)
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
@@ -61,22 +87,14 @@ while True:
             distance = np.linalg.norm(tvec)
             target_found = True
 
-    cv2.aruco.drawDetectedMarkers(frame, corners, ids)
+            shoot(1700, 2)
+            stop()
+        print(yaw, distance, target_found)
+    print("alive")
+    if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+        if sys.stdin.readline().strip() == "q":
+            break
 
-    cv2.putText(
-        frame,
-        f"ID:{tag_id} Yaw:{yaw:.2f} Dist:{distance:.2f}",
-        (10, 30),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.6,
-        (0, 255, 0),
-        2
-    )
-
-    cv2.imshow("vision", frame)
-
-    if cv2.waitKey(1) == ord('q'):
-        break
-
+ppi.stop()
 cap.release()
 cv2.destroyAllWindows()
