@@ -1,0 +1,32 @@
+------------------------ MAIN VISION SOFTWARE
+
+To run the vision software, enter the following line
+
+python3 vision.py
+
+and put an AprilTag in front of the camera. It should recognize it and start
+the shooter motor.
+
+
+------------------------ CALIBRATION
+
+In order to calibrate, enter the following line
+
+python3 calibrate.py
+
+and follow the instructions. You will need a chessboard. Hold the chessboard in front of the camera until it overlays the grid with blue and green lines. Then, press 'S'. You must do this 20 times. It's a good idea to rotate the chessboard so it gets a variety of angles and distances. Press 'Q' if you need to stop for any reason.
+
+
+------------------------ SINGLE MOTOR TEST
+
+In order to test a single motor, open the test python file with
+
+vim test_motor.py
+
+and change the pin number to whichever pin number you are using. Then exit that file by pressing
+
+Ctrl + '['
+
+and then typing ':wq'. Then run the test file with
+
+python3 test_motor.py
