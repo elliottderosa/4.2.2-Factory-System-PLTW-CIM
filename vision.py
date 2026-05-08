@@ -7,31 +7,43 @@ import math
 import pigpio
 import time
 
+# Initializes the Raspberry PI
 pi = pigpio.pi()
 
+# Sets up a pin for the shooting motor and the hood control motor
 shot_pin = 18
 hood_pin = 14
 
+# Creates variables for shot_speed and shot_angle
 shot_speed = 1600
 shot_angle = 0
 
+# Sets the mode of each pin to output
 pi.set_mode(shot_pin, pigpio.OUTPUT)
+pi.set_mode(hood_pin, pigpio.OUTPUT)
 
-def shoot(speed, length):
+# Helper shoot function
+# Takes in a speed and a duration of time
+# Example:
+# shoot(1700, 2)
+def shoot(speed, duration):
     shot_speed = speed
     pi.set_servo_pulsewidth(shot_pin, speed)
-    time.sleep(length)
+    time.sleep(duration)
 
-def stop(pin):
+# Helper stop function
+def stop():
     while shot_speed > 1500:
         shot_speed -= 2
-        pi.set_servo_pulsewidth(18, shot_speed)
+        pi.set_servo_pulsewidth(shot_pin, shot_speed)
         time.sleep(0.02)
-    pi.set_servo_pulsewidth(18, 1500)
+    pi.set_servo_pulsewidth(shot_pin, 1500)
 
+# Opens the calibration file
 with open("camera_calibration.pkl", "rb") as f:
     mtx, dist = pickle.load(f)
 
+# The side length of the AprilTag
 TAG_SIZE = 0.16  # meters
 
 aruco_dict = cv2.aruco.getPredefinedDictionary(
@@ -44,8 +56,10 @@ cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
+# Information and debug
 print("Vision system started. Press Q to quit.")
 
+# Main loop
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -90,11 +104,11 @@ while True:
             shoot(1700, 2)
             stop()
         print(yaw, distance, target_found)
-    print("alive")
+
     if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
         if sys.stdin.readline().strip() == "q":
             break
 
-ppi.stop()
+pi.stop()
 cap.release()
 cv2.destroyAllWindows()
